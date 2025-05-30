@@ -97,6 +97,19 @@ function apply_J!(
     end
 end
 
+function apply_R!(
+    xout::Abstract_GeneralizedDomainwallFermion_5D{NC,WilsonFermion},
+    x::Abstract_GeneralizedDomainwallFermion_5D{NC,WilsonFermion},
+) where {NC,WilsonFermion}
+    clear_fermion!(xout)
+
+    L5 = xout.L5
+    for i5 = 1:L5
+        j5 = L5 - i5 + 1
+        substitute_fermion!(xout.w[i5], x.w[j5])
+    end
+end
+
 function apply_P!(
     xout::Abstract_GeneralizedDomainwallFermion_5D{NC,WilsonFermion},
     x::Abstract_GeneralizedDomainwallFermion_5D{NC,WilsonFermion},
@@ -137,6 +150,22 @@ function apply_Pdag!(
         mul_1minusγ5x_add!(xout.w[i5], x.w[j5], 1)
         set_wing_fermion!(xout.w[i5])
     end
+end
+
+function apply_P_edge!(
+    xout::Abstract_GeneralizedDomainwallFermion_5D{NC,WilsonFermion},
+    x::Abstract_GeneralizedDomainwallFermion_5D{NC,WilsonFermion},) where {NC,WilsonFermion}
+
+    clear_fermion!(xout)
+    ratio = 1.0
+
+    i5 = 1
+    # LTK Definition P_- -> P_+
+    mul_1plusγ5x_add!(xout.w[i5], x.w[i5], ratio)
+
+    i5 = xout.L5
+    # LTK Definition P_+ -> P_-
+    mul_1minusγ5x_add!(xout.w[i5], x.w[i5], ratio)
 end
 
 function apply_1pD!(
