@@ -558,3 +558,136 @@ function sample_pseudofermions!(
     mul!(ϕ, W', ξ)
     set_wing_fermion!(ϕ)
 end
+
+function evaluate_dSdb(
+    fermi_action,
+    U,
+    ϕ,
+    params,
+    b,
+    c,
+) 
+    W_ref = fermi_action.diracoperator.D5DW(U)
+    #     D5DW_MobiusDomainwall_operator(
+    #     U::Array{<:AbstractGaugefields{NC,Dim},1},
+    #     x,
+    #     parameters,
+    #     mass,
+    #     b,
+    #     c,
+    # )
+    W = D5DW_MobiusDomainwall_operator(U, ϕ, params, W_ref.mass, b, c)
+    # QD5DW = fermi_action.diracoperator.D5DW(U)
+    QD5DW = D5DW_MobiusDomainwall_operator(U, ϕ, params, W_ref.mass, b, c)
+    Q = MobiusD5DWdagD5DW_Wilson_operator(QD5DW)
+    # D5_PV = fermi_action.diracoperator.D5DW_PV(U)
+    D5_PV = D5DW_MobiusDomainwall_operator(U, ϕ, params, 1.0, b, c)
+    
+
+    result = 0.0
+
+    temps = fermi_action._temporary_fermionfields
+    η, it_η = get_temp(temps)
+
+    temps_dw, it_temps_dw = get_temp(temps)#fermi_action._temporary_fermionfields[1]
+    #temps_dw = fermi_action._temporary_fermionfields[1]
+
+    X0, it_X0 = get_temp(temps)
+    Y, it_Y = get_temp(temps)
+
+    temp3, it_temp3 = get_temp(temps)
+    temp4, it_temp4 = get_temp(temps)
+
+    
+    mul!(temps_dw, D5_PV', ϕ) #temps_dw = D5_PV'*ϕ
+
+    solve_DinvX!(X0, Q, temps_dw) #X0 = Q^-1 D5_PV'*ϕ
+    #set_wing_fermion!(X)
+    set_wing_fermion!(ϕ)
+    #η = fermi_action._temporary_fermionfields[1]
+
+    apply_dDdb!(Y, U, X0, 1.0, D5_PV, temp3, temp4)
+
+    result += 2.0 * dot(ϕ, Y)
+
+    apply_dDdb!(Y, U, X0, W.mass, W, temp3, temp4)
+    solve_DinvX!(temps_dw, W, Y)
+    mul!(Y, D5_PV, temps_dw)
+
+    result -= 2.0 * dot(ϕ, Y)
+
+    unused!(temps, it_temps_dw)
+    unused!(temps, it_X0)
+    unused!(temps, it_Y)
+    unused!(temps, it_temp3)
+    unused!(temps, it_temp4)
+
+    return result
+end
+
+
+function evaluate_dSdc(
+    fermi_action,
+    U,
+    ϕ,
+    params,
+    b,
+    c,
+) 
+    W_ref = fermi_action.diracoperator.D5DW(U)
+    #     D5DW_MobiusDomainwall_operator(
+    #     U::Array{<:AbstractGaugefields{NC,Dim},1},
+    #     x,
+    #     parameters,
+    #     mass,
+    #     b,
+    #     c,
+    # )
+    W = D5DW_MobiusDomainwall_operator(U, ϕ, params, W_ref.mass, b, c)
+    # QD5DW = fermi_action.diracoperator.D5DW(U)
+    QD5DW = D5DW_MobiusDomainwall_operator(U, ϕ, params, W_ref.mass, b, c)
+    Q = MobiusD5DWdagD5DW_Wilson_operator(QD5DW)
+    # D5_PV = fermi_action.diracoperator.D5DW_PV(U)
+    D5_PV = D5DW_MobiusDomainwall_operator(U, ϕ, params, 1.0, b, c)
+    
+
+    result = 0.0
+
+    temps = fermi_action._temporary_fermionfields
+    η, it_η = get_temp(temps)
+
+    temps_dw, it_temps_dw = get_temp(temps)#fermi_action._temporary_fermionfields[1]
+    #temps_dw = fermi_action._temporary_fermionfields[1]
+
+    X0, it_X0 = get_temp(temps)
+    Y, it_Y = get_temp(temps)
+
+    temp3, it_temp3 = get_temp(temps)
+    temp4, it_temp4 = get_temp(temps)
+
+    
+    mul!(temps_dw, D5_PV', ϕ) #temps_dw = D5_PV'*ϕ
+
+    solve_DinvX!(X0, Q, temps_dw) #X0 = Q^-1 D5_PV'*ϕ
+    #set_wing_fermion!(X)
+    set_wing_fermion!(ϕ)
+    #η = fermi_action._temporary_fermionfields[1]
+
+    apply_dDdc!(Y, U, X0, 1.0, D5_PV, temp3, temp4)
+
+    result += 2.0 * dot(ϕ, Y)
+
+    apply_dDdc!(Y, U, X0, W.mass, W, temp3, temp4)
+    solve_DinvX!(temps_dw, W, Y)
+    mul!(Y, D5_PV, temps_dw)
+
+    result -= 2.0 * dot(ϕ, Y)
+
+    unused!(temps, it_temps_dw)
+    unused!(temps, it_X0)
+    unused!(temps, it_Y)
+    unused!(temps, it_temp3)
+    unused!(temps, it_temp4)
+
+    return result
+end

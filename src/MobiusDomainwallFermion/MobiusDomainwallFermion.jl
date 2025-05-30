@@ -404,7 +404,6 @@ function LinearAlgebra.mul!(
     unused!(temps, it_temp4)
 end
 
-
 function LinearAlgebra.mul!(
     y::T1,
     A::T2,

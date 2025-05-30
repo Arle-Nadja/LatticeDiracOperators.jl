@@ -832,14 +832,14 @@ function apply_dDdb!(
     x::Abstract_MobiusDomainwallFermion_5D{NC,WilsonFermion},
     m,
     A,
-    L5,
     temp1,
     temp2,
-)
+) where {NC,WilsonFermion,G<:AbstractGaugefields}
     clear_fermion!(xout)
 
+    L5 = xout.L5
 
-    for i5 in irange
+    for i5 = 1:L5
         j5 = i5
         # xout = Dw * x
         D4x!(xout.w[i5], U, x.w[j5], A, 4) #Dw*x
@@ -862,14 +862,13 @@ function apply_dDdc!(
     x::Abstract_MobiusDomainwallFermion_5D{NC,WilsonFermion},
     m,
     A,
-    L5,
     temp1,
     temp2,
-)
+) where {NC,WilsonFermion,G<:AbstractGaugefields}
     clear_fermion!(xout)
 
-
-    for i5 in irange
+    L5 = xout.L5
+    for i5 = 1:L5
         j5 = i5
         # xout = Dw * x
         D4x!(xout.w[i5], U, x.w[j5], A, 4) #Dw*x
