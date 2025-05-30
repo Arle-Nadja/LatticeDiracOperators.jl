@@ -826,6 +826,65 @@ function apply_Fdag!(
 
 end
 
+function apply_dDdb!(
+    xout::Abstract_MobiusDomainwallFermion_5D{NC,WilsonFermion},
+    U::Array{G,1},
+    x::Abstract_MobiusDomainwallFermion_5D{NC,WilsonFermion},
+    m,
+    A,
+    L5,
+    temp1,
+    temp2,
+)
+    clear_fermion!(xout)
+
+
+    for i5 in irange
+        j5 = i5
+        # xout = Dw * x
+        D4x!(xout.w[i5], U, x.w[j5], A, 4) #Dw*x
+
+        set_wing_fermion!(xout.w[i5])
+
+        # temp2 = L(m) * x
+        apply_F!(temp2, L5, m, x, temp1)
+        for i5 = 1:L5
+            # axpy!(-1, temp1.w[i5], xout.w[i5])
+            # xout = -0.5 * ( Dw + L(m)) * x
+            add!(-0.5, xout.w[i5], -0.5, temp2.w[i5])
+        end
+    end
+end
+
+function apply_dDdc!(
+    xout::Abstract_MobiusDomainwallFermion_5D{NC,WilsonFermion},
+    U::Array{G,1},
+    x::Abstract_MobiusDomainwallFermion_5D{NC,WilsonFermion},
+    m,
+    A,
+    L5,
+    temp1,
+    temp2,
+)
+    clear_fermion!(xout)
+
+
+    for i5 in irange
+        j5 = i5
+        # xout = Dw * x
+        D4x!(xout.w[i5], U, x.w[j5], A, 4) #Dw*x
+
+        set_wing_fermion!(xout.w[i5])
+
+        # temp2 = L(m) * x
+        apply_F!(temp2, L5, m, x, temp1)
+        for i5 = 1:L5
+            # axpy!(-1, temp1.w[i5], xout.w[i5])
+            # xout = -0.5 * ( Dw - L(m)) * x
+            add!(-0.5, xout.w[i5], 0.5, temp2.w[i5])
+        end
+    end
+end
 
 function D5DWx!(
     xout::Abstract_MobiusDomainwallFermion_5D{NC,WilsonFermion},
