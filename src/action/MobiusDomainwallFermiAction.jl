@@ -576,18 +576,19 @@ function evaluate_dSdb(
     #     b,
     #     c,
     # )
-    W = D5DW_MobiusDomainwall_operator(U, ϕ, params, W_ref.mass, b, c)
+    x = similar(ϕ)
+    W = D5DW_MobiusDomainwall_operator(U, x, params, W_ref.mass, b, c)
     # QD5DW = fermi_action.diracoperator.D5DW(U)
-    QD5DW = D5DW_MobiusDomainwall_operator(U, ϕ, params, W_ref.mass, b, c)
+    QD5DW = D5DW_MobiusDomainwall_operator(U, x, params, W_ref.mass, b, c)
     Q = MobiusD5DWdagD5DW_Wilson_operator(QD5DW)
     # D5_PV = fermi_action.diracoperator.D5DW_PV(U)
-    D5_PV = D5DW_MobiusDomainwall_operator(U, ϕ, params, 1.0, b, c)
+    D5_PV = D5DW_MobiusDomainwall_operator(U, x, params, 1.0, b, c)
     
 
     result = 0.0
 
     temps = fermi_action._temporary_fermionfields
-    η, it_η = get_temp(temps)
+    # η, it_η = get_temp(temps)
 
     temps_dw, it_temps_dw = get_temp(temps)#fermi_action._temporary_fermionfields[1]
     #temps_dw = fermi_action._temporary_fermionfields[1]
@@ -595,8 +596,11 @@ function evaluate_dSdb(
     X0, it_X0 = get_temp(temps)
     Y, it_Y = get_temp(temps)
 
-    temp3, it_temp3 = get_temp(temps)
-    temp4, it_temp4 = get_temp(temps)
+    # temp3, it_temp3 = get_temp(temps)
+    # temp4, it_temp4 = get_temp(temps)
+    temps_2 = W._temporary_fermi
+    temp3, it_temp3 = get_temp(temps_2)
+    temp4, it_temp4 = get_temp(temps_2)   
 
     
     mul!(temps_dw, D5_PV', ϕ) #temps_dw = D5_PV'*ϕ
@@ -606,23 +610,25 @@ function evaluate_dSdb(
     set_wing_fermion!(ϕ)
     #η = fermi_action._temporary_fermionfields[1]
 
-    apply_dDdb!(Y, U, X0, 1.0, D5_PV, temp3, temp4)
+    apply_dDdb!(Y, U, X0, 1.0, W_ref.wilsonoperator, temp3, temp4)
 
     result += 2.0 * dot(ϕ, Y)
 
-    apply_dDdb!(Y, U, X0, W.mass, W, temp3, temp4)
+    apply_dDdb!(Y, U, X0, W.mass, W_ref.wilsonoperator, temp3, temp4)
     solve_DinvX!(temps_dw, W, Y)
     mul!(Y, D5_PV, temps_dw)
+
+    set_wing_fermion!(ϕ)
 
     result -= 2.0 * dot(ϕ, Y)
 
     unused!(temps, it_temps_dw)
     unused!(temps, it_X0)
     unused!(temps, it_Y)
-    unused!(temps, it_temp3)
-    unused!(temps, it_temp4)
+    unused!(temps_2, it_temp3)
+    unused!(temps_2, it_temp4)
 
-    return result
+    return real(result) 
 end
 
 
@@ -643,18 +649,19 @@ function evaluate_dSdc(
     #     b,
     #     c,
     # )
-    W = D5DW_MobiusDomainwall_operator(U, ϕ, params, W_ref.mass, b, c)
+    x = similar(ϕ)
+    W = D5DW_MobiusDomainwall_operator(U, x, params, W_ref.mass, b, c)
     # QD5DW = fermi_action.diracoperator.D5DW(U)
-    QD5DW = D5DW_MobiusDomainwall_operator(U, ϕ, params, W_ref.mass, b, c)
+    QD5DW = D5DW_MobiusDomainwall_operator(U, x, params, W_ref.mass, b, c)
     Q = MobiusD5DWdagD5DW_Wilson_operator(QD5DW)
     # D5_PV = fermi_action.diracoperator.D5DW_PV(U)
-    D5_PV = D5DW_MobiusDomainwall_operator(U, ϕ, params, 1.0, b, c)
+    D5_PV = D5DW_MobiusDomainwall_operator(U, x, params, 1.0, b, c)
     
 
     result = 0.0
 
     temps = fermi_action._temporary_fermionfields
-    η, it_η = get_temp(temps)
+    # η, it_η = get_temp(temps)
 
     temps_dw, it_temps_dw = get_temp(temps)#fermi_action._temporary_fermionfields[1]
     #temps_dw = fermi_action._temporary_fermionfields[1]
@@ -662,8 +669,11 @@ function evaluate_dSdc(
     X0, it_X0 = get_temp(temps)
     Y, it_Y = get_temp(temps)
 
-    temp3, it_temp3 = get_temp(temps)
-    temp4, it_temp4 = get_temp(temps)
+    # temp3, it_temp3 = get_temp(temps)
+    # temp4, it_temp4 = get_temp(temps)
+    temps_2 = W._temporary_fermi
+    temp3, it_temp3 = get_temp(temps_2)
+    temp4, it_temp4 = get_temp(temps_2)    
 
     
     mul!(temps_dw, D5_PV', ϕ) #temps_dw = D5_PV'*ϕ
@@ -673,11 +683,11 @@ function evaluate_dSdc(
     set_wing_fermion!(ϕ)
     #η = fermi_action._temporary_fermionfields[1]
 
-    apply_dDdc!(Y, U, X0, 1.0, D5_PV, temp3, temp4)
+    apply_dDdc!(Y, U, X0, 1.0, W_ref.wilsonoperator, temp3, temp4)
 
     result += 2.0 * dot(ϕ, Y)
 
-    apply_dDdc!(Y, U, X0, W.mass, W, temp3, temp4)
+    apply_dDdc!(Y, U, X0, W.mass, W_ref.wilsonoperator, temp3, temp4)
     solve_DinvX!(temps_dw, W, Y)
     mul!(Y, D5_PV, temps_dw)
 
@@ -686,8 +696,8 @@ function evaluate_dSdc(
     unused!(temps, it_temps_dw)
     unused!(temps, it_X0)
     unused!(temps, it_Y)
-    unused!(temps, it_temp3)
-    unused!(temps, it_temp4)
+    unused!(temps_2, it_temp3)
+    unused!(temps_2, it_temp4)
 
-    return result
+    return real(result) 
 end
