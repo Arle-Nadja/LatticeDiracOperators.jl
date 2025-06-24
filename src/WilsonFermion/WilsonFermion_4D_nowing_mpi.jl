@@ -407,6 +407,8 @@ function update_sent_data!(
     myrank_xyzt_send = (px, py, pz, pt)
 
     myrank_send = get_myrank(myrank_xyzt_send, PEs)
+    # myrank_send = get_myrank(PEs)
+    # myrank_send = get_myrank(x)
     #println("send ",myrank_send)
 
 
@@ -525,6 +527,12 @@ function mpi_updates_fermion_1data!(
 
         #error("in shiftdU")
     end
+end
+
+function get_myrank(myrank_xyzt, PEs)
+    @inbounds return (
+        ((myrank_xyzt[4]) * PEs[3] + myrank_xyzt[3]) * PEs[2] + myrank_xyzt[2]
+    ) * PEs[1] + myrank_xyzt[1]
 end
 
 function mpi_updates_fermion_moredata!(

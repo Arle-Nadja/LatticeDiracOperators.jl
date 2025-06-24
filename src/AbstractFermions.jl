@@ -156,6 +156,8 @@ function __init__()
         include("./StaggeredFermion/StaggeredFermion_4D_nowing_mpi.jl")
         include("./DomainwallFermion/DomainwallFermion_5d_wing_mpi.jl")
         include("./DomainwallFermion/DomainwallFermion_5d_mpi.jl")
+        include("./MobiusDomainwallFermion/MobiusDomainwallFermion_5d_mpi.jl")
+        include("./GeneralizedDomainwallFermion/GeneralizedDomainwallFermion_5d_mpi.jl")
     end
 
 end
@@ -166,7 +168,7 @@ function Initialize_pseudofermion_fields(
     u::AbstractGaugefields{NC,Dim},
     Dirac_operator::String;
     L5=2,
-    nowing=true, kwargs...
+    nowing=false, kwargs...
 ) where {NC,Dim}
     mpi = u.mpi
     if mpi
@@ -223,7 +225,6 @@ function Initialize_pseudofermion_fields(
                         u.NZ,
                         u.NT,
                         u.PEs,
-                        nowing = nowing,
                     )
                 else
                     x = MobiusDomainwallFermion_5D_wing_mpi(
@@ -236,6 +237,16 @@ function Initialize_pseudofermion_fields(
                         u.PEs,
                     )
                 end
+            elseif Dirac_operator == "GeneralizedDomainwall"
+                x = MobiusDomainwallFermion_5D_mpi(
+                    L5,
+                    u.NC,
+                    u.NX,
+                    u.NY,
+                    u.NZ,
+                    u.NT,
+                    u.PEs,
+                ) 
             else
                 error("Dirac_operator = $Dirac_operator is not supported")
             end

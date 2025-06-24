@@ -20,6 +20,7 @@ struct D5DW_GeneralizedDomainwall_operator{Dim,T,fermion,wilsonfermion} <:
     # _temporary_fermion_forCG::Vector{fermion}
     _temporary_fermion_forCG::Temporalfields{fermion}# Vector{fermion}
     boundarycondition::Vector{Int8}
+    as::Vector{Float64}
     bs::Vector{Float64} #coefficient for GeneralizedDomainwall
     cs::Vector{Float64} #coefficient for GeneralizedDomainwall
 
@@ -31,6 +32,7 @@ function D5DW_GeneralizedDomainwall_operator(
     x,
     parameters,
     mass,
+    as,
     bs,
     cs,
 ) where {NC,Dim}
@@ -115,6 +117,7 @@ function D5DW_GeneralizedDomainwall_operator(
         verbose_print,
         _temporary_fermion_forCG,
         boundarycondition,
+        as,
         bs,
         cs,
     )
@@ -138,6 +141,7 @@ function (D::D5DW_GeneralizedDomainwall_operator{Dim,T,fermion,wilsonfermion})(
         D.verbose_print,
         D._temporary_fermion_forCG,
         D.boundarycondition,
+        D.as,
         D.bs,
         D.cs,
     )
@@ -164,6 +168,7 @@ struct GeneralizedDomainwall_Dirac_operator{Dim,T,fermion,wilsonfermion} <:
     method_CG::String
     verbose_print::Verbose_print
     boundarycondition::Vector{Int8}
+    as::Vector{Float64}
     bs::Vector{Float64} #coefficient for GeneralizedDomainwall
     cs::Vector{Float64} #coefficient for GeneralizedDomainwall
 
@@ -180,6 +185,7 @@ function GeneralizedDomainwall_Dirac_operator(
     @assert haskey(parameters, "L5") "parameters should have the keyword L5"
     L5 = parameters["L5"]
 
+    as = check_parameters(parameters, "as", fill(1.0,L5))
     bs = check_parameters(parameters, "bs", fill(1.5,L5))
     cs = check_parameters(parameters, "cs", fill(0.5,L5))
 
@@ -198,8 +204,8 @@ function GeneralizedDomainwall_Dirac_operator(
     #     println_verbose_level1(U[1], "scaled Shamir kernel (Generalized DW) is used")
     # end
 
-    D5DW = D5DW_GeneralizedDomainwall_operator(U, x, parameters, mass, bs, cs)
-    D5DW_PV = D5DW_GeneralizedDomainwall_operator(U, x, parameters, 1, bs, cs)
+    D5DW = D5DW_GeneralizedDomainwall_operator(U, x, parameters, mass, as, bs, cs)
+    D5DW_PV = D5DW_GeneralizedDomainwall_operator(U, x, parameters, 1, as, bs, cs)
 
     #boundarycondition = check_parameters(parameters,"boundarycondition",[1,1,1,-1])
 
@@ -231,6 +237,7 @@ function GeneralizedDomainwall_Dirac_operator(
         method_CG,
         verbose_print,
         boundarycondition,
+        as,
         bs,
         cs,
     )
@@ -251,6 +258,7 @@ function (D::GeneralizedDomainwall_Dirac_operator{Dim,T,fermion,wilsonfermion})(
         D.method_CG,
         D.verbose_print,
         D.boundarycondition,
+        D.as,
         D.bs,
         D.cs,
     )
@@ -308,10 +316,11 @@ struct GeneralizedD5DWdagD5DW_Wilson_operator{T} <: DdagD_operator
         x,
         parameters,
         mass,
+        as,
         bs,
         cs,
     ) where {T<:AbstractGaugefields}
-        return new{T}(D5DW_GeneralizedDomainwall_operator(U, x, parameters, mass, bs, cs))
+        return new{T}(D5DW_GeneralizedDomainwall_operator(U, x, parameters, mass, as, bs, cs))
     end
 
     function GeneralizedD5DWdagD5DW_Wilson_operator(
@@ -371,6 +380,7 @@ function LinearAlgebra.mul!(
         A.mass,
         A.wilsonoperator,
         A.L5,
+        A.as,
         A.bs,
         A.cs,
         #A._temporary_fermi[3],
@@ -403,6 +413,7 @@ function LinearAlgebra.mul!(
         A.parent.mass,
         A.parent.wilsonoperator,
         A.parent.L5,
+        A.parent.as,
         A.parent.bs,
         A.parent.cs,
         #A.parent._temporary_fermi[3],

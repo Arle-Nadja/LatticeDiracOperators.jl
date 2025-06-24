@@ -3,8 +3,8 @@ import Gaugefields: comm, setvalue!
 """
 Struct for DomainwallFermion
 """
-struct DomainwallFermion_5D_mpi{NC,WilsonFermion} <:
-       Abstract_DomainwallFermion_5D{NC,WilsonFermion}
+struct MobiusDomainwallFermion_5D_mpi{NC,WilsonFermion} <:
+       Abstract_MobiusDomainwallFermion_5D{NC,WilsonFermion}
     w::Array{WilsonFermion,1}
     NC::Int64
     NX::Int64
@@ -23,7 +23,7 @@ struct DomainwallFermion_5D_mpi{NC,WilsonFermion} <:
     mpi::Bool
     nowing::Bool
 
-    function DomainwallFermion_5D_mpi(
+    function MobiusDomainwallFermion_5D_mpi(
         L5,
         NC::T,
         NX::T,
@@ -31,7 +31,7 @@ struct DomainwallFermion_5D_mpi{NC,WilsonFermion} <:
         NZ::T,
         NT::T,
         PEs;
-        nowing = true,
+        nowing = false,
     ) where {T<:Integer}
 
         NV = NX * NY * NZ * NT
@@ -66,7 +66,7 @@ struct DomainwallFermion_5D_mpi{NC,WilsonFermion} <:
         end
         #println(w[2][1,1,1,1,1,1])
         NWilson = length(x)
-        Dirac_operator = "Domainwall"
+        Dirac_operator = "MobiusDomainwall"
         mpi = true
         mpiinit = true
         return new{NC,xtype}(
@@ -93,7 +93,7 @@ struct DomainwallFermion_5D_mpi{NC,WilsonFermion} <:
 end
 
 @inline function setvalue!(
-    x::DomainwallFermion_5D_mpi{NC,WilsonFermion},
+    x::MobiusDomainwallFermion_5D_mpi{NC,WilsonFermion},
     v,
     i1,
     i2,
@@ -112,7 +112,7 @@ end
 end
 
 @inline function getvalue(
-    x::DomainwallFermion_5D_mpi{NC,WilsonFermion},
+    x::MobiusDomainwallFermion_5D_mpi{NC,WilsonFermion},
     i1,
     i2,
     i3,
@@ -127,9 +127,9 @@ end
 
 
 function Base.similar(
-    x::DomainwallFermion_5D_mpi{NC,WilsonFermion},
+    x::MobiusDomainwallFermion_5D_mpi{NC,WilsonFermion},
 ) where {NC,WilsonFermion}
-    return DomainwallFermion_5D_mpi(
+    return MobiusDomainwallFermion_5D_mpi(
         x.L5,
         NC,
         x.NX,

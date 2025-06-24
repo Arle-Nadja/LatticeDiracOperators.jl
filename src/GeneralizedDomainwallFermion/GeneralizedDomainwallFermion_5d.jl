@@ -684,8 +684,7 @@ function apply_Fdag!(
 
 end
 
-
-function D5DWx!(
+function apply_dDdas!(
     xout::Abstract_GeneralizedDomainwallFermion_5D{NC,WilsonFermion},
     U::Array{G,1},
     x::Abstract_GeneralizedDomainwallFermion_5D{NC,WilsonFermion},
@@ -720,7 +719,108 @@ function D5DWx!(
     apply_1pD!(temp1, L5, U, A, temp2, factors)
     for i5 = 1:L5
         # axpy!(-1, temp1.w[i5], xout.w[i5])
-        add!(-1, xout.w[i5], 1, temp1.w[i5])
+        # add!(-1, xout.w[i5], 1, temp1.w[i5])
+        add!(-1.0, xout.w[i5], 1.0, temp1.w[i5])
+    end
+
+    set_wing_fermion!(xout)
+
+
+    return
+end
+
+
+function apply_dDdbs!(xout::Abstract_GeneralizedDomainwallFermion_5D{NC,WilsonFermion},
+    U::Array{G,1},
+    x::Abstract_GeneralizedDomainwallFermion_5D{NC,WilsonFermion},
+    A,
+    as,
+    temp1,
+) where {NC,WilsonFermion,G<:AbstractGaugefields}
+
+    clear_fermion!(xout)
+
+    L5 = xout.L5
+
+    for i5 = 1:L5 
+        j5 = i5
+
+        D4x!(temp1.w[i5], U, x.w[j5], A, 4)
+        set_wing_fermion!(temp1.w[i5])
+    end
+
+    for i5 = 1:L5 
+        axpy!(-as[i5], temp1.w[i5], xout.w[i5])
+    end
+end
+
+function apply_dDdcs!(xout::Abstract_GeneralizedDomainwallFermion_5D{NC,WilsonFermion},
+    U::Array{G,1},
+    x::Abstract_GeneralizedDomainwallFermion_5D{NC,WilsonFermion},
+    m,
+    A,
+    as,
+    temp1,
+    temp2,
+) where {NC,WilsonFermion,G<:AbstractGaugefields}
+
+    clear_fermion!(xout)
+
+    L5 = xout.L5
+
+    apply_F!(temp1, L5, m, x, temp2)
+
+    for i5 = 1:L5 
+        j5 = i5
+
+        D4x!(temp2.w[i5], U, temp1.w[j5], A, 4)
+        set_wing_fermion!(temp2.w[i5])
+    end
+
+    for i5 = 1:L5 
+        axpy!(-as[i5], temp2.w[i5], xout.w[i5])
+    end
+end
+
+
+function D5DWx!(
+    xout::Abstract_GeneralizedDomainwallFermion_5D{NC,WilsonFermion},
+    U::Array{G,1},
+    x::Abstract_GeneralizedDomainwallFermion_5D{NC,WilsonFermion},
+    m,
+    A,
+    L5,
+    as,
+    bs,
+    cs,
+    temp1,
+    temp2,
+) where {NC,WilsonFermion,G<:AbstractGaugefields}
+
+
+    #temp = temps[4]
+    #temp1 = temps[1]
+    #temp2 = temps[2]
+    coeffs_plus = bs
+    # coeff_plus = 1
+    coeffs_minus = -cs
+    # coeff_minus  = 0
+    clear_fermion!(xout)
+    ratio = 1
+
+    factors = coeffs_plus
+    #xout = (1 + factor*D)*x
+    apply_1pD!(xout, L5, U, A, x, factors)
+
+    #temp2 = F*x
+    apply_F!(temp2, L5, m, x, temp1)
+    factors = coeffs_minus
+    #xout = (1 + factor*D)*F*x
+    apply_1pD!(temp1, L5, U, A, temp2, factors)
+    for i5 = 1:L5
+        # axpy!(-1, temp1.w[i5], xout.w[i5])
+        # add!(-1, xout.w[i5], 1, temp1.w[i5])
+        add!(-as[i5], xout.w[i5], as[i5], temp1.w[i5])
     end
 
     set_wing_fermion!(xout)
@@ -736,6 +836,7 @@ function D5DWdagx!(
     m,
     A,
     L5,
+    as,
     bs,
     cs,
     temp1,
@@ -765,7 +866,8 @@ function D5DWdagx!(
 
     for i5 = 1:L5
         # axpy!(1, temp1.w[i5], xout.w[i5])
-        add!(1, xout.w[i5], -1, temp1.w[i5])
+        # add!(1, xout.w[i5], -1, temp1.w[i5])
+        add!(as[i5], xout.w[i5], -as[i5], temp1.w[i5])
     end
 
     set_wing_fermion!(xout)

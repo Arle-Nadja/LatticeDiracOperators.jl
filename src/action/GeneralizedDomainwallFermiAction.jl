@@ -456,3 +456,236 @@ function sample_pseudofermions!(
     mul!(ϕ, W', ξ)
     set_wing_fermion!(ϕ)
 end
+
+function evaluate_dSdas(
+    fermi_action,
+    U,
+    ϕ,
+    params,
+    as,
+    bs,
+    cs,
+) 
+    W_ref = fermi_action.diracoperator.D5DW(U)
+    L5 = ϕ.L5
+    #     D5DW_MobiusDomainwall_operator(
+    #     U::Array{<:AbstractGaugefields{NC,Dim},1},
+    #     x,
+    #     parameters,
+    #     mass,
+    #     b,
+    #     c,
+    # )
+    x = similar(ϕ)
+    W = D5DW_GeneralizedDomainwall_operator(U, x, params, W_ref.mass, as,bs, cs)
+    # QD5DW = fermi_action.diracoperator.D5DW(U)
+    QD5DW = D5DW_GeneralizedDomainwall_operator(U, x, params, W_ref.mass, as,bs, cs)
+    Q = GeneralizedD5DWdagD5DW_Wilson_operator(QD5DW)
+    # D5_PV = fermi_action.diracoperator.D5DW_PV(U)
+    D5_PV = D5DW_GeneralizedDomainwall_operator(U, x, params, 1.0, as, bs, cs)
+    
+
+    results = zeros(ComplexF64, L5)
+
+    temps = fermi_action._temporary_fermionfields
+    # η, it_η = get_temp(temps)
+
+    temps_dw, it_temps_dw = get_temp(temps)#fermi_action._temporary_fermionfields[1]
+    #temps_dw = fermi_action._temporary_fermionfields[1]
+
+    X0, it_X0 = get_temp(temps)
+    Y, it_Y = get_temp(temps)
+
+    # temp3, it_temp3 = get_temp(temps)
+    # temp4, it_temp4 = get_temp(temps)
+    temps_2 = W._temporary_fermi
+    temp3, it_temp3 = get_temp(temps_2)
+    temp4, it_temp4 = get_temp(temps_2)   
+
+    
+    mul!(temps_dw, D5_PV', ϕ) #temps_dw = D5_PV'*ϕ
+
+    solve_DinvX!(X0, Q, temps_dw) #X0 = Q^-1 D5_PV'*ϕ
+    #set_wing_fermion!(X)
+    set_wing_fermion!(ϕ)
+    #η = fermi_action._temporary_fermionfields[1]
+
+    apply_dDdas!(Y, U, X0, 1.0, W_ref.wilsonoperator, L5, bs, cs, temp3, temp4)
+
+    for i5 = 1:L5
+        results[i5] += 2.0 * dot(ϕ.w[i5], Y.w[i5])
+    end
+
+    apply_dDdas!(Y, U, X0, W.mass, W_ref.wilsonoperator, L5, bs, cs, temp3, temp4)
+    solve_DinvX!(temps_dw, W, Y)
+    mul!(Y, D5_PV, temps_dw)
+
+    # set_wing_fermion!(ϕ)
+
+    for i5 = 1:L5
+        results[i5] -= 2.0 * dot(ϕ.w[i5], Y.w[i5])
+    end
+    
+    unused!(temps, it_temps_dw)
+    unused!(temps, it_X0)
+    unused!(temps, it_Y)
+    unused!(temps_2, it_temp3)
+    unused!(temps_2, it_temp4)
+
+    return real.(results) 
+end
+
+function evaluate_dSdbs(
+    fermi_action,
+    U,
+    ϕ,
+    params,
+    as,
+    bs,
+    cs,
+) 
+    L5 = ϕ.L5
+    W_ref = fermi_action.diracoperator.D5DW(U)
+    #     D5DW_MobiusDomainwall_operator(
+    #     U::Array{<:AbstractGaugefields{NC,Dim},1},
+    #     x,
+    #     parameters,
+    #     mass,
+    #     b,
+    #     c,
+    # )
+    x = similar(ϕ)
+    W = D5DW_GeneralizedDomainwall_operator(U, x, params, W_ref.mass, as,bs, cs)
+    # QD5DW = fermi_action.diracoperator.D5DW(U)
+    QD5DW = D5DW_GeneralizedDomainwall_operator(U, x, params, W_ref.mass, as,bs, cs)
+    Q = GeneralizedD5DWdagD5DW_Wilson_operator(QD5DW)
+    # D5_PV = fermi_action.diracoperator.D5DW_PV(U)
+    D5_PV = D5DW_GeneralizedDomainwall_operator(U, x, params, 1.0, as, bs, cs)
+    
+
+    results = zeros(ComplexF64, L5)
+
+    temps = fermi_action._temporary_fermionfields
+    # η, it_η = get_temp(temps)
+
+    temps_dw, it_temps_dw = get_temp(temps)#fermi_action._temporary_fermionfields[1]
+    #temps_dw = fermi_action._temporary_fermionfields[1]
+
+    X0, it_X0 = get_temp(temps)
+    Y, it_Y = get_temp(temps)
+
+    # temp3, it_temp3 = get_temp(temps)
+    # temp4, it_temp4 = get_temp(temps)
+    temps_2 = W._temporary_fermi
+    temp3, it_temp3 = get_temp(temps_2)
+    temp4, it_temp4 = get_temp(temps_2)   
+
+    
+    mul!(temps_dw, D5_PV', ϕ) #temps_dw = D5_PV'*ϕ
+
+    solve_DinvX!(X0, Q, temps_dw) #X0 = Q^-1 D5_PV'*ϕ
+    #set_wing_fermion!(X)
+    set_wing_fermion!(ϕ)
+    #η = fermi_action._temporary_fermionfields[1]
+
+    apply_dDdbs!(Y, U, X0, W_ref.wilsonoperator, as, temp3)
+
+    for i5 = 1:L5
+        results[i5] += 2.0 * dot(ϕ.w[i5], Y.w[i5])
+    end
+
+    apply_dDdbs!(Y, U, X0, W_ref.wilsonoperator, as, temp3)
+    solve_DinvX!(temps_dw, W, Y)
+    mul!(Y, D5_PV, temps_dw)
+
+    # set_wing_fermion!(ϕ)
+
+    for i5 = 1:L5
+        results[i5] -= 2.0 * dot(ϕ.w[i5], Y.w[i5])
+    end
+    
+    unused!(temps, it_temps_dw)
+    unused!(temps, it_X0)
+    unused!(temps, it_Y)
+    unused!(temps_2, it_temp3)
+    unused!(temps_2, it_temp4)
+
+    return real.(results) 
+end
+
+
+function evaluate_dSdcs(
+    fermi_action,
+    U,
+    ϕ,
+    params,
+    as,
+    bs,
+    cs,
+) 
+    L5 = ϕ.L5
+    W_ref = fermi_action.diracoperator.D5DW(U)
+    #     D5DW_MobiusDomainwall_operator(
+    #     U::Array{<:AbstractGaugefields{NC,Dim},1},
+    #     x,
+    #     parameters,
+    #     mass,
+    #     b,
+    #     c,
+    # )
+    x = similar(ϕ)
+    W = D5DW_GeneralizedDomainwall_operator(U, x, params, W_ref.mass, as,bs, cs)
+    # QD5DW = fermi_action.diracoperator.D5DW(U)
+    QD5DW = D5DW_GeneralizedDomainwall_operator(U, x, params, W_ref.mass, as,bs, cs)
+    Q = GeneralizedD5DWdagD5DW_Wilson_operator(QD5DW)
+    # D5_PV = fermi_action.diracoperator.D5DW_PV(U)
+    D5_PV = D5DW_GeneralizedDomainwall_operator(U, x, params, 1.0, as, bs, cs)
+    
+
+    results = zeros(ComplexF64, L5)
+
+    temps = fermi_action._temporary_fermionfields
+    # η, it_η = get_temp(temps)
+
+    temps_dw, it_temps_dw = get_temp(temps)#fermi_action._temporary_fermionfields[1]
+    #temps_dw = fermi_action._temporary_fermionfields[1]
+
+    X0, it_X0 = get_temp(temps)
+    Y, it_Y = get_temp(temps)
+
+    # temp3, it_temp3 = get_temp(temps)
+    # temp4, it_temp4 = get_temp(temps)
+    temps_2 = W._temporary_fermi
+    temp3, it_temp3 = get_temp(temps_2)
+    temp4, it_temp4 = get_temp(temps_2)    
+
+    
+    mul!(temps_dw, D5_PV', ϕ) #temps_dw = D5_PV'*ϕ
+
+    solve_DinvX!(X0, Q, temps_dw) #X0 = Q^-1 D5_PV'*ϕ
+    #set_wing_fermion!(X)
+    set_wing_fermion!(ϕ)
+    #η = fermi_action._temporary_fermionfields[1]
+
+    apply_dDdcs!(Y, U, X0, 1.0, W_ref.wilsonoperator, as, temp3, temp4)
+
+    for i5 = 1:L5
+        results[i5] += 2.0 * dot(ϕ.w[i5], Y.w[i5])
+    end
+
+    apply_dDdcs!(Y, U, X0, W.mass, W_ref.wilsonoperator, as, temp3, temp4)
+    solve_DinvX!(temps_dw, W, Y)
+    mul!(Y, D5_PV, temps_dw)
+
+    for i5 = 1:L5
+        results[i5] -= 2.0 * dot(ϕ.w[i5], Y.w[i5])
+    end
+
+    unused!(temps, it_temps_dw)
+    unused!(temps, it_X0)
+    unused!(temps, it_Y)
+    unused!(temps_2, it_temp3)
+    unused!(temps_2, it_temp4)
+
+    return real.(results) 
+end
